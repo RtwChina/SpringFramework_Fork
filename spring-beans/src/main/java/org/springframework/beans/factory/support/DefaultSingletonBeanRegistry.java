@@ -177,10 +177,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 		Object singletonObject = this.singletonObjects.get(beanName);
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
 			synchronized (this.singletonObjects) {
+				// 主要是为了防止重复依赖
 				singletonObject = this.earlySingletonObjects.get(beanName);
 				if (singletonObject == null && allowEarlyReference) {
+					// 当某些方法需要提前初始化的时候会调用addSingletionFactory 方法将对应的singletonFactory存储在singletonFactories
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
+						//  //记录在缓存中,earlySingletonObjects 和 singletonFactories互斥
 						singletonObject = singletonFactory.getObject();
 						this.earlySingletonObjects.put(beanName, singletonObject);
 						this.singletonFactories.remove(beanName);
@@ -201,7 +204,9 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) {
 		Assert.notNull(beanName, "Bean name must not be null");
+		// 同步全局变量
 		synchronized (this.singletonObjects) {
+			// 检查是否已经创建过，毕竟singleton模式
 			Object singletonObject = this.singletonObjects.get(beanName);
 			if (singletonObject == null) {
 				if (this.singletonsCurrentlyInDestruction) {
@@ -212,6 +217,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				if (logger.isDebugEnabled()) {
 					logger.debug("Creating shared instance of singleton bean '" + beanName + "'");
 				}
+				// 记录正在创建单例
 				beforeSingletonCreation(beanName);
 				boolean newSingleton = false;
 				boolean recordSuppressedExceptions = (this.suppressedExceptions == null);
@@ -219,6 +225,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					this.suppressedExceptions = new LinkedHashSet<>();
 				}
 				try {
+					// 初始化bean
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				}
@@ -242,9 +249,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
+					// 删除 记录正在创建单例
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {
+					// 加入缓存
 					addSingleton(beanName, singletonObject);
 				}
 			}

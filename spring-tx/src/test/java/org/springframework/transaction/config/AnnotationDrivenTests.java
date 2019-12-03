@@ -16,6 +16,7 @@
 
 package org.springframework.transaction.config;
 
+import java.io.InputStream;
 import java.io.Serializable;
 
 import org.aopalliance.intercept.MethodInterceptor;
@@ -27,6 +28,8 @@ import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.tests.transaction.CallCountingTransactionManager;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.SerializationTestUtils;

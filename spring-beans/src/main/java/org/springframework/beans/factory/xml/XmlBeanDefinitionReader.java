@@ -334,6 +334,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 				if (encodedResource.getEncoding() != null) {
 					inputSource.setEncoding(encodedResource.getEncoding());
 				}
+				// 正在逻辑核心部分
 				return doLoadBeanDefinitions(inputSource, encodedResource.getResource());
 			}
 			finally {
@@ -391,6 +392,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 		try {
 			Document doc = doLoadDocument(inputSource, resource);
+			// 解析Document
 			int count = registerBeanDefinitions(doc, resource);
 			if (logger.isDebugEnabled()) {
 				logger.debug("Loaded " + count + " bean definitions from " + resource);
@@ -432,6 +434,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 * @see DocumentLoader#loadDocument
 	 */
 	protected Document doLoadDocument(InputSource inputSource, Resource resource) throws Exception {
+		// 校验XML的格式，读取XML至Document
 		return this.documentLoader.loadDocument(inputSource, getEntityResolver(), this.errorHandler,
 				getValidationModeForResource(resource), isNamespaceAware());
 	}

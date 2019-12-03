@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+<!--	<bean id="myTestBean" class="org.springframework.tests.sample.beans.usertest.MyTestBean">-->
+
+<!--		<lookup-method name="getPrototypeDependency" bean="jenny"/>-->
+
+<!--		<lookup-method name="protectedOverrideSingleton" bean="david"/>-->
+
+<!--		&lt;!&ndash; Arbitrary method replacer &ndash;&gt;-->
+<!--		<replaced-method name="replaceMe" replacer="reverseReplacer">-->
+<!--			<arg-type>String</arg-type>-->
+<!--		</replaced-method>-->
+
+<!--		<replaced-method name="replaceMe" replacer="fixedReplacer"/>-->
+
+<!--	</bean>-->
+
+
+	<bean id="teacher" class="org.springframework.tests.sample.beans.usertest.Teacher"/>
+	<bean id="student" class="org.springframework.tests.sample.beans.usertest.Student"/>
+	<bean id="replacer" class="org.springframework.tests.sample.beans.usertest.Replacer"/>
+
+
+	<bean id="myTestBean" class="org.springframework.tests.sample.beans.usertest.MyTestBean">
+		<lookup-method name="getUserBean" bean="student"/>
+		<replaced-method name="changedMethod" replacer="replacer" />
+	</bean>
+
+</beans>
