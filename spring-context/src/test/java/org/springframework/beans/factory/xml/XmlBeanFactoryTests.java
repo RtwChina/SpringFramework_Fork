@@ -29,6 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
+import org.junit.Test;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.tests.sample.beans.usertest.MyTestBean;
 import org.xml.sax.InputSource;
 
 import org.springframework.aop.framework.ProxyFactory;
@@ -125,10 +129,22 @@ public class XmlBeanFactoryTests {
 
 
 	@Test  // SPR-2368
-	public void testCollectionsReferredToAsRefLocals() {
-		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-		new XmlBeanDefinitionReader(factory).loadBeanDefinitions(COLLECTIONS_XSD_CONTEXT);
-		factory.preInstantiateSingletons();
+	public void testCollectionsReferredToAsRefLocals() throws Exception{
+		System.out.println(REFTYPES_CONTEXT);
+//		Resource resource=new ClassPathResource("org/springframework/beans/factory/xml/XmlBeanFactoryTests-autowire.xml");
+//		InputStream inputStream = resource.getInputStream();
+
+//		BeanFactory bf= new XmlBeanFactory (new ClassPathResource ("org/springframework/beans/factory/xml/XmlBeanFactoryTests-rtwtest.xml"));
+		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("XmlBeanFactoryTests-rtwtest.xml", getClass());
+
+		MyTestBean bean = (MyTestBean) context.getBean("myTestBean");
+		bean.getUserBean().showMe("rtt");
+		bean.changedMethod("sad");
+
+		Thread.sleep(1000);
+//		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+//		new XmlBeanDefinitionReader(factory).loadBeanDefinitions(COLLECTIONS_XSD_CONTEXT);
+//		factory.preInstantiateSingletons();
 	}
 
 	@Test
