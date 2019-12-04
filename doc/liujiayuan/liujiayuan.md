@@ -75,10 +75,13 @@ _`（Spring容器先创建单例A，A依赖B，然后将A放在“当前创建Be
 
 
 ### 2. Spring的lookup-method 和 replace-method 用的不多，但是也有一定的应用场景。简单说一下我们实际可以运用的场景。
+@Lookup是lookup-method的注解版本，在方法或者抽象方法上使用@Lookup注解，将会根据该方法的返回值，自动在BeanFactory中调用getBean()来注入该Bean。
+可以用 @Autowire @Qualifier替换
+
 我觉得最好不要用，虽然看起来很操作很简单，但是增加了查看代码难度。如果不了解原理，可能会导致未知问题。
 
 # 2019-12-09周 #
-### 1、spring起来后有几个spring容器？只有一个吗？
+### 1、Spring起来后有几个spring容器？只有一个吗？
 
 ### 2、BeanDefinitionRegistryPostProcessor、BeanFactoryPostProcessor、BeanPostProcessor（这个没看到可以先流程）在什么时候触发？
 
