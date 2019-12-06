@@ -83,8 +83,77 @@ _`（Spring容器先创建单例A，A依赖B，然后将A放在“当前创建Be
 # 2019-12-09周 #
 ### 1、Spring起来后有几个spring容器？只有一个吗？
 
-### 2、BeanDefinitionRegistryPostProcessor、BeanFactoryPostProcessor、BeanPostProcessor（这个没看到可以先流程）在什么时候触发？
+一个web应用会有一个全局的上下文环境，上下为 **ServletContext**，其为后面的spring IoC容器提供宿主环境。
+
+Spring 是通过 web.xml 中的 contextLoaderListener 监听触发容器启动的，在这个 listener 中会创建一个跟上下文--WebApplicationContext。
+
+`// todo 等看完 springMVC 再来完善`
+
+在 SpringMVC 启动时又会创建 WebApplicationContext 的子容器。 
+
+### 2、BeanDefinitionRegistryPostProcessor、BeanFactoryPostProcessor、BeanPostProcessor（这个没看到可以先留着）在什么时候触发？
+
+    
+    org.springframework.context.support.AbstractApplicationContext
+    @Override
+    public void refresh() throws BeansException, IllegalStateException {
+       synchronized (this.startupShutdownMonitor) {
+          ...
+          // Tell the subclass to refresh the internal bean factory.
+          // 告诉子类刷新内部的bean工厂。
+          ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+    
+          // Prepare the bean factory for use in this context.
+          // 准备在该上下文下使用的bean工厂。
+          prepareBeanFactory(beanFactory);
+    
+          try {
+             // Allows post-processing of the bean factory in context subclasses.
+             // 允许在上下文子类中对bean工厂进行后处理。
+             postProcessBeanFactory(beanFactory);
+    
+    
+             // Invoke factory processors registered as beans in the context.
+             // 在上下文中调用注册为bean的工厂处理器。
+             // 这里有实例化部分bean。（BeanDefinitionRegistryPostProcessor 以及 BeanFactoryPostProcessor 类型）
+             // 这里提供了修改 beanFactory 的spi（BeanDefinitionRegistryPostProcessor 以及 BeanFactoryPostProcessor 类型的实现即可）
+             invokeBeanFactoryPostProcessors(beanFactory);
+             
+             // Register bean processors that intercept bean creation.
+             // 注册 BeanPostProcessor
+             registerBeanPostProcessors(beanFactory);
+    ...
+
+#### 2.1 BeanDefinitionRegistryPostProcessor、BeanFactoryPostProcessor注册触发
+上面这段代码中的 **invokeBeanFactoryPostProcessors** 中就是触发 BeanDefinitionRegistryPostProcessor 和 BeanFactoryPostProcessor 的逻辑。
+
+#### 2.2 BeanPostProcessor注册触发
+`// todo 等看完 getBean 再来完善`
+
+**registerBeanPostProcessors** 就是BeanPostProcessor的注册，至于触发是在Bean实例化以及初始化前后触发的。
 
 ### 3、BeanDefinitionRegistryPostProcessor、BeanFactoryPostProcessor 触发是否有顺序，如果有顺序，那么是以怎么样的顺序进行触发的？
+
+#### 3.1. BeanDefinitionRegistryPostProcessor 和 BeanFactoryPostProcessor
+
+PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(beanFactory, getBeanFactoryPostProcessors()); 就触发了所有的 BeanDefinitionRegistryPostProcessor 处理以及 BeanFactoryPostProcessor 处理。具体代码太长了就不贴出来了。总体分成以下几步
+
+* BeanFactory 是否属于 BeanDefinitionRegistry 类型
+    * 如果 BeanFactory 属于 BeanDefinitionRegistry 类型
+        * 先将 BeanFactory 中 BeanDefinitionRegistryPostProcessor（已实例化并注册到 BeanFacotry 中的） 筛选出来，存在缓存 registryProcessors 中，并运行 processor 的 postProcessBeanDefinitionRegistry。BeanFactory 中其余的 BeanFactoryPostProcessor，存在缓存 regularPostProcessors（**只继承了BeanFactoryPostProcessor**） 中。
+        * 从 BeanFactory 中获取所有类型为 BeanDefinitionRegistryPostProcessor 类型的 BeanNames 。根据 **priorityOrder、Order**、**普通顺序触发 postProcessBeanDefinitionRegistry**（注意，**_PriorityOrder 级别筛选完成之后触发了事件，需要重新从容器中加载 BeanNames，因为触发的后置事件可能往容器中添加了 BeanDefinitionRegistryPostProcessor_**）
+        * 最后再调用 BeanDefinitionRegistryPostProcessor 的 postProcessBeanFactory 方法（**顺序还是priorityOrder、Order、普通顺序**）
+        * 调用 regularPostProcessors 的 postProcessBeanFactory 方法
+    * 如果 BeanFactory 不属于 BeanDefinitionRegistry 类型
+        * 触发 beanFactory 中所有 BeanFactoryPostProcessor 的 postProcessBeanFactory
+* 从容器中获取 BeanFactoryPostProcessor 类型的所有 BeanNames ，然后根据 priorityOrder、Order、**普通顺序**触发postProcessBeanFactory
+
+#### 3.2. BeanPostProcessor
+
+PostProcessorRegistrationDelegate 中注册 BeanPostProcessor 的注册步骤和上面触发 BeanDefinitionRegistryPostProcessor 以及 BeanFactoryPostProcessor 基本一样，这里的 BeanPostProcessor 只是注册，并没有触发他的 postProcess 操作。具体步骤如下：
+* 从 beanFactory 中获取 BeanPostProcessor 类型的 BeanNames
+* 根据 **priorityOrder、Order、普通顺序实例化初始化注册到容器中**
+
+
 
 ### @Compont @Service 系列什么时候实例化
