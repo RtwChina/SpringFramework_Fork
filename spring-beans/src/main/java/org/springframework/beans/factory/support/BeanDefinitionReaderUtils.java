@@ -57,6 +57,10 @@ public abstract class BeanDefinitionReaderUtils {
 	public static AbstractBeanDefinition createBeanDefinition(
 			@Nullable String parentName, @Nullable String className, @Nullable ClassLoader classLoader) throws ClassNotFoundException {
 
+		/**
+		 * 解析xmlbean时创建的BeanDefinition是GenericBeanDefinition，后面创建bean时需要转成RootBeanDefinition
+		 * @see AbstractBeanFactory#getMergedLocalBeanDefinition(java.lang.String)
+		 */
 		GenericBeanDefinition bd = new GenericBeanDefinition();
 		bd.setParentName(parentName);
 		if (className != null) {

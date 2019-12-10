@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 使用Spring默认名称空间 http://www.springframework.org/schema/beans -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean id="pdwTestBean" class="org.springframework.tests.sample.beans.usertest.pdw.PdwTestBean">
+		<description>测试各种属性解析</description>
+		<meta key="desc" value="pdw测试类"/>
+<!--		<constructor-arg index="0" value="descStr" />-->
+<!--		<constructor-arg index="1">-->
+<!--			<map>-->
+<!--				<entry key="name" value="zhangsan"/>-->
+<!--			</map>-->
+<!--		</constructor-arg>-->
+<!--		<property name="desc" value="descProperty"/>-->
+	</bean>
+
+	<!--	测试replace-method -->
+	<bean class="org.springframework.tests.sample.beans.usertest.pdw.ChangeMethod" id="changeMethod">
+		<replaced-method name="changeMe" replacer="changeMethodReplacer"/>
+	</bean>
+	<bean class="org.springframework.tests.sample.beans.usertest.pdw.ChangeMethodReplacer" id="changeMethodReplacer"/>
+
+	<!--	测试lookUp-method -->
+	<bean class="org.springframework.tests.sample.beans.usertest.pdw.LookUpMethodTestBean" id="lookUpMethodTestBean">
+		<!--	获取器注入
+			这个方法比
+			@Autowired
+			@Qualifier("teacher")
+			这种写法好处在于不用改代码，通过xml配置修改实现类
+		-->
+		<lookup-method name="getBean" bean="teacher"/>
+
+	</bean>
+	<bean id="people" class="org.springframework.tests.sample.beans.usertest.pdw.People">
+
+	</bean>
+	<bean id="teacher" class="org.springframework.tests.sample.beans.usertest.pdw.Teacher"/>
+	<bean id="student" class="org.springframework.tests.sample.beans.usertest.pdw.Student">
+		<qualifier value="s"/>
+	</bean>
+
+</beans>

@@ -26,15 +26,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
-import org.junit.Test;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.tests.sample.beans.usertest.MyTestBean;
-import org.xml.sax.InputSource;
-
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -55,6 +48,7 @@ import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.support.MethodReplacer;
 import org.springframework.beans.factory.support.RootBeanDefinition;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.UrlResource;
@@ -66,10 +60,12 @@ import org.springframework.tests.sample.beans.IndexedTestBean;
 import org.springframework.tests.sample.beans.ResourceTestBean;
 import org.springframework.tests.sample.beans.TestBean;
 import org.springframework.tests.sample.beans.factory.DummyFactory;
+import org.springframework.tests.sample.beans.usertest.MyTestBean;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.SerializationTestUtils;
 import org.springframework.util.StopWatch;
+import org.xml.sax.InputSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -129,7 +125,7 @@ public class XmlBeanFactoryTests {
 
 
 	@Test  // SPR-2368
-	public void testCollectionsReferredToAsRefLocals() throws Exception{
+	public void testCollectionsReferredToAsRefLocals() throws Exception {
 		System.out.println(REFTYPES_CONTEXT);
 //		Resource resource=new ClassPathResource("org/springframework/beans/factory/xml/XmlBeanFactoryTests-autowire.xml");
 //		InputStream inputStream = resource.getInputStream();
@@ -191,8 +187,7 @@ public class XmlBeanFactoryTests {
 		InputStream inputStream = getClass().getResourceAsStream(REFTYPES_CONTEXT.getPath());
 		try {
 			reader.loadBeanDefinitions(new InputSource(inputStream));
-		}
-		finally {
+		} finally {
 			inputStream.close();
 		}
 
@@ -303,8 +298,7 @@ public class XmlBeanFactoryTests {
 
 		try {
 			xbf.getBean("failsOnInnerBean");
-		}
-		catch (BeanCreationException ex) {
+		} catch (BeanCreationException ex) {
 			// Check whether message contains outer bean name.
 			ex.printStackTrace();
 			assertThat(ex.getMessage().contains("failsOnInnerBean")).isTrue();
@@ -313,8 +307,7 @@ public class XmlBeanFactoryTests {
 
 		try {
 			xbf.getBean("failsOnInnerBeanForConstructor");
-		}
-		catch (BeanCreationException ex) {
+		} catch (BeanCreationException ex) {
 			// Check whether message contains outer bean name.
 			ex.printStackTrace();
 			assertThat(ex.getMessage().contains("failsOnInnerBeanForConstructor")).isTrue();
@@ -489,8 +482,8 @@ public class XmlBeanFactoryTests {
 		new XmlBeanDefinitionReader(child).loadBeanDefinitions(CHILD_CONTEXT);
 		assertThatExceptionOfType(BeanDefinitionStoreException.class).isThrownBy(() ->
 				child.getBean("bogusParent", TestBean.class))
-			.withMessageContaining("bogusParent")
-			.withCauseInstanceOf(NoSuchBeanDefinitionException.class);
+				.withMessageContaining("bogusParent")
+				.withCauseInstanceOf(NoSuchBeanDefinitionException.class);
 	}
 
 	/**
@@ -584,7 +577,7 @@ public class XmlBeanFactoryTests {
 		reader.loadBeanDefinitions(REFTYPES_CONTEXT);
 		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
 				xbf.getBean("jenny"))
-			.matches(ex -> ex.contains(BeanCurrentlyInCreationException.class));
+				.matches(ex -> ex.contains(BeanCurrentlyInCreationException.class));
 	}
 
 	@Test
@@ -596,7 +589,7 @@ public class XmlBeanFactoryTests {
 		xbf.addBeanPostProcessor(new WrappingPostProcessor());
 		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
 				xbf.getBean("jenny"))
-			.matches(ex -> ex.contains(BeanCurrentlyInCreationException.class));
+				.matches(ex -> ex.contains(BeanCurrentlyInCreationException.class));
 	}
 
 	@Test
@@ -674,11 +667,11 @@ public class XmlBeanFactoryTests {
 		new XmlBeanDefinitionReader(xbf).loadBeanDefinitions(INITIALIZERS_CONTEXT);
 		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
 				xbf.getBean("init-method2"))
-			.withCauseInstanceOf(IOException.class)
-			.satisfies(ex -> {
-				assertThat(ex.getResourceDescription()).contains("initializers.xml");
-				assertThat(ex.getBeanName()).isEqualTo("init-method2");
-			});
+				.withCauseInstanceOf(IOException.class)
+				.satisfies(ex -> {
+					assertThat(ex.getResourceDescription()).contains("initializers.xml");
+					assertThat(ex.getBeanName()).isEqualTo("init-method2");
+				});
 	}
 
 	@Test
@@ -687,9 +680,9 @@ public class XmlBeanFactoryTests {
 		new XmlBeanDefinitionReader(xbf).loadBeanDefinitions(INITIALIZERS_CONTEXT);
 		assertThatExceptionOfType(FatalBeanException.class).isThrownBy(() ->
 				xbf.getBean("init-method3"))
-			.withMessageContaining("initializers.xml")
-			.withMessageContaining("init-method3")
-			.withMessageContaining("init");
+				.withMessageContaining("initializers.xml")
+				.withMessageContaining("init-method3")
+				.withMessageContaining("init");
 	}
 
 	/**
@@ -744,8 +737,7 @@ public class XmlBeanFactoryTests {
 		assertThat(InitAndIB.constructed).isTrue();
 		try {
 			xbf.getBean("lazy-and-bad");
-		}
-		catch (BeanCreationException ex) {
+		} catch (BeanCreationException ex) {
 			assertThat(ex.getCause() instanceof IOException).isTrue();
 		}
 	}
@@ -921,8 +913,7 @@ public class XmlBeanFactoryTests {
 
 		try {
 			xbf.getBean("rod2Accessor");
-		}
-		catch (BeanCreationException ex) {
+		} catch (BeanCreationException ex) {
 			assertThat(ex.toString().contains("touchy")).isTrue();
 			ex.printStackTrace();
 			assertThat((Object) ex.getRelatedCauses()).isNull();
@@ -1103,8 +1094,8 @@ public class XmlBeanFactoryTests {
 		// let's resolve the bean definition; must blow up
 		assertThatExceptionOfType(CannotLoadBeanClassException.class).isThrownBy(() ->
 				factory.getBean("classNotFound"))
-			.withCauseInstanceOf(ClassNotFoundException.class)
-			.satisfies(ex -> assertThat(ex.getResourceDescription()).contains("classNotFound.xml"));
+				.withCauseInstanceOf(ClassNotFoundException.class)
+				.satisfies(ex -> assertThat(ex.getResourceDescription()).contains("classNotFound.xml"));
 	}
 
 	@Test
@@ -1181,7 +1172,8 @@ public class XmlBeanFactoryTests {
 
 	/**
 	 * See <a href="https://jira.spring.io/browse/SPR-10785">SPR-10785</a> and <a
-	 *      href="https://jira.spring.io/browse/SPR-11420">SPR-11420</a>
+	 * href="https://jira.spring.io/browse/SPR-11420">SPR-11420</a>
+	 *
 	 * @since 3.2.8 and 4.0.2
 	 */
 	@Test
@@ -1197,8 +1189,7 @@ public class XmlBeanFactoryTests {
 
 			if (firstClass == null) {
 				firstClass = currentClass;
-			}
-			else {
+			} else {
 				assertThat(currentClass).isEqualTo(firstClass);
 			}
 		}
@@ -1239,13 +1230,12 @@ public class XmlBeanFactoryTests {
 	}
 
 	private void lookupOverrideMethodsWithSetterInjection(BeanFactory xbf,
-			String beanName, boolean singleton) {
+														  String beanName, boolean singleton) {
 		OverrideOneMethod oom = (OverrideOneMethod) xbf.getBean(beanName);
 
 		if (singleton) {
 			assertThat(xbf.getBean(beanName)).isSameAs(oom);
-		}
-		else {
+		} else {
 			assertThat(xbf.getBean(beanName)).isNotSameAs(oom);
 		}
 
@@ -1348,7 +1338,7 @@ public class XmlBeanFactoryTests {
 		reader.loadBeanDefinitions(INVALID_NO_SUCH_METHOD_CONTEXT);
 		assertThatExceptionOfType(BeanDefinitionStoreException.class).isThrownBy(() ->
 				xbf.getBean("constructorOverrides"))
-			.withMessageContaining("bogusMethod");
+				.withMessageContaining("bogusMethod");
 	}
 
 	@Test
@@ -1452,7 +1442,7 @@ public class XmlBeanFactoryTests {
 		bd.setLenientConstructorResolution(false);
 		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
 				xbf.getBean("lenientDependencyTestBean"))
-			.satisfies(ex -> assertThat(ex.getMostSpecificCause().getMessage()).contains("Ambiguous"));
+				.satisfies(ex -> assertThat(ex.getMostSpecificCause().getMessage()).contains("Ambiguous"));
 	}
 
 	@Test
@@ -1463,7 +1453,7 @@ public class XmlBeanFactoryTests {
 		bd.setLenientConstructorResolution(false);
 		assertThatExceptionOfType(BeanCreationException.class).isThrownBy(() ->
 				xbf.getBean("lenientDependencyTestBeanFactoryMethod"))
-			.satisfies(ex -> assertThat(ex.getMostSpecificCause().getMessage()).contains("Ambiguous"));
+				.satisfies(ex -> assertThat(ex.getMostSpecificCause().getMessage()).contains("Ambiguous"));
 	}
 
 	@Test
@@ -1541,7 +1531,7 @@ public class XmlBeanFactoryTests {
 		DefaultListableBeanFactory xbf = new DefaultListableBeanFactory();
 		assertThatExceptionOfType(BeansException.class).isThrownBy(() ->
 				new XmlBeanDefinitionReader(xbf).loadBeanDefinitions(TEST_WITH_DUP_NAMES_CONTEXT))
-			.withMessageContaining("Bean name 'foo'");
+				.withMessageContaining("Bean name 'foo'");
 	}
 
 	@Test
@@ -1549,7 +1539,7 @@ public class XmlBeanFactoryTests {
 		DefaultListableBeanFactory xbf = new DefaultListableBeanFactory();
 		assertThatExceptionOfType(BeansException.class).isThrownBy(() ->
 				new XmlBeanDefinitionReader(xbf).loadBeanDefinitions(TEST_WITH_DUP_NAME_IN_ALIAS_CONTEXT))
-			.withMessageContaining("Bean name 'foo'");
+				.withMessageContaining("Bean name 'foo'");
 	}
 
 	@Test
@@ -1588,7 +1578,9 @@ public class XmlBeanFactoryTests {
 
 	public static class BadInitializer {
 
-		/** Init method */
+		/**
+		 * Init method
+		 */
 		public void init2() throws IOException {
 			throw new IOException();
 		}
@@ -1607,7 +1599,9 @@ public class XmlBeanFactoryTests {
 			num = i;
 		}
 
-		/** Init method */
+		/**
+		 * Init method
+		 */
 		public void init() {
 			this.num *= 2;
 		}
@@ -1633,7 +1627,9 @@ public class XmlBeanFactoryTests {
 			this.afterPropertiesSetInvoked = true;
 		}
 
-		/** Init method */
+		/**
+		 * Init method
+		 */
 		public void customInit() throws IOException {
 			assertThat(this.afterPropertiesSetInvoked).isTrue();
 			if (this.initMethodInvoked) {
