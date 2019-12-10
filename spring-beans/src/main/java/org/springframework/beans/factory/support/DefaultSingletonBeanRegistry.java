@@ -71,9 +71,11 @@ import org.springframework.util.StringUtils;
 public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements SingletonBeanRegistry {
 
 	/** Cache of singleton objects: bean name to bean instance. */
+	// 直接可以使用的对象
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
 
 	/** Cache of singleton factories: bean name to ObjectFactory. */
+	// 避免循环依赖时使用的，存放的是一个LamBda表达式哦
 	private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
 
 	/** Cache of early singleton objects: bean name to bean instance. */
@@ -183,7 +185,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					// 当某些方法需要提前初始化的时候会调用addSingletionFactory 方法将对应的singletonFactory存储在singletonFactories
 					ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 					if (singletonFactory != null) {
-						//  //记录在缓存中,earlySingletonObjects 和 singletonFactories互斥
+						// 记录在缓存中,earlySingletonObjects 和 singletonFactories互斥
 						singletonObject = singletonFactory.getObject();
 						this.earlySingletonObjects.put(beanName, singletonObject);
 						this.singletonFactories.remove(beanName);
@@ -226,6 +228,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 				}
 				try {
 					// 初始化bean
+					// 真正创建的SinglotonFactory
 					singletonObject = singletonFactory.getObject();
 					newSingleton = true;
 				}
@@ -249,7 +252,7 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (recordSuppressedExceptions) {
 						this.suppressedExceptions = null;
 					}
-					// 删除 记录正在创建单例
+					// 删除记录正在创建单例
 					afterSingletonCreation(beanName);
 				}
 				if (newSingleton) {

@@ -27,6 +27,10 @@
 	<bean id="myTestBean" class="org.springframework.tests.sample.beans.usertest.MyTestBean">
 		<lookup-method name="getUserBean" bean="student"/>
 		<replaced-method name="changedMethod" replacer="replacer" />
+		<property name="name" value="rtt"/>
+		<property name="myTestBeanTwo" ref="myTestBeanTwo"/>
+	</bean>
+	<bean id="myTestBeanTwo" class="org.springframework.tests.sample.beans.usertest.MyTestBeanTwo">
 	</bean>
 
 </beans>

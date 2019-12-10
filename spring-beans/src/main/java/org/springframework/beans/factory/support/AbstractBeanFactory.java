@@ -251,7 +251,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		//Spring创建bean的原则是不等bean创建完成就会将创建bean的ObjectFactory提早曝光，也就是将ObjectFactory加入到缓存中，一旦下个bean创建时候需要依赖上一个bean则直接使用ObjectFactory
 
 		// Eagerly check singleton cache for manually registered singletons.
-		// ／直接尝试从缓存获取或者singletorFactories 中的 Object Factory 中获垠
+		// ／直接尝试从缓存获取或者singletorFactories中的ObjectFactory中获取
+		// 比较单例如果之前已经获取过后就可以直接使用咯
 		Object sharedInstance = getSingleton(beanName);
 		if (sharedInstance != null && args == null) {
 			if (logger.isTraceEnabled()) {
@@ -263,7 +264,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
 				}
 			}
-			// 返回实例，如果存在有 FactoryBean的情况，则不直接返回bean,
+			// 返回实例，如果存在有ObjectFactory的情况
 			bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
 		}
 		else {
@@ -333,6 +334,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
+							// org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(java.lang.String, org.springframework.beans.factory.support.RootBeanDefinition, java.lang.Object[])
 							return createBean(beanName, mbd, args);
 						}
 						catch (BeansException ex) {

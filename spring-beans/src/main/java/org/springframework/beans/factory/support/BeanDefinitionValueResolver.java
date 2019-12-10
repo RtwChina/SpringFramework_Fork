@@ -104,6 +104,7 @@ class BeanDefinitionValueResolver {
 	 * @param value the value object to resolve
 	 * @return the resolved object
 	 */
+	// 根据入参的name，拿到对应的值，比如是String类型，则直接拿到。如果是其他bean，则通过beanFactory.getBean获取
 	@Nullable
 	public Object resolveValueIfNecessary(Object argName, @Nullable Object value) {
 		// We must check each value to see whether it requires a runtime reference

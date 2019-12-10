@@ -23,4 +23,7 @@
 
 	<bean id="service" class="org.springframework.transaction.config.TransactionalService"/>
 
+	<bean id="hello" class="org.springframework.autotest.Hello"/>
+	<bean id="rtwTest" class="org.springframework.autotest.RtwTest"/>
+
 </beans>

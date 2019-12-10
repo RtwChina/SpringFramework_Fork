@@ -28,6 +28,11 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.commons.logging.LogFactory;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.tests.sample.beans.usertest.MyTestBean;
+import org.xml.sax.InputSource;
+
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
@@ -130,12 +135,12 @@ public class XmlBeanFactoryTests {
 //		Resource resource=new ClassPathResource("org/springframework/beans/factory/xml/XmlBeanFactoryTests-autowire.xml");
 //		InputStream inputStream = resource.getInputStream();
 
-//		BeanFactory bf= new XmlBeanFactory (new ClassPathResource ("org/springframework/beans/factory/xml/XmlBeanFactoryTests-rtwtest.xml"));
-		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("XmlBeanFactoryTests-rtwtest.xml", getClass());
+		BeanFactory bf= new XmlBeanFactory (new ClassPathResource ("org/springframework/beans/factory/xml/XmlBeanFactoryTests-rtwtest.xml"));
+//		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("XmlBeanFactoryTests-rtwtest.xml", getClass());
 
-		MyTestBean bean = (MyTestBean) context.getBean("myTestBean");
-		bean.getUserBean().showMe("rtt");
-		bean.changedMethod("sad");
+		MyTestBean bean = (MyTestBean) bf.getBean("myTestBean");
+//		bean.getUserBean().showMe("rtt");
+//		bean.changedMethod("sad");
 
 		Thread.sleep(1000);
 //		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();

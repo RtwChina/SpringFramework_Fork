@@ -24,6 +24,8 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.aop.support.AopUtils;
+import org.springframework.autotest.Hello;
+import org.springframework.autotest.RtwTest;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -45,6 +47,8 @@ public class AnnotationDrivenTests {
 	@Test
 	public void withProxyTargetClass() throws Exception {
 		ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("annotationDrivenProxyTargetClassTests.xml", getClass());
+		RtwTest test = (RtwTest) context.getBean("rtwTest");
+		test.testAware();
 		doTestWithMultipleTransactionManagers(context);
 	}
 

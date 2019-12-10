@@ -5,9 +5,11 @@ package org.springframework.tests.sample.beans.usertest;
  * @since 2019/11/27
  */
 public abstract class MyTestBean {
+	private String name = "123";
+
 	//用于测试lookup-method
 	public abstract User getUserBean();
-
+	private MyTestBeanTwo myTestBeanTwo;
 	private User user;
 	//用于测试replace-method
 	public void changedMethod(String str) {
@@ -22,4 +24,11 @@ public abstract class MyTestBean {
 		this.user = user;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setMyTestBeanTwo(MyTestBeanTwo myTestBeanTwo) {
+		this.myTestBeanTwo = myTestBeanTwo;
+	}
 }
