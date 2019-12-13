@@ -141,7 +141,6 @@ public class XmlBeanFactoryTests {
 		MyTestBean bean = (MyTestBean) bf.getBean("myTestBean");
 //		bean.getUserBean().showMe("rtt");
 //		bean.changedMethod("sad");
-
 		Thread.sleep(1000);
 //		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
 //		new XmlBeanDefinitionReader(factory).loadBeanDefinitions(COLLECTIONS_XSD_CONTEXT);
