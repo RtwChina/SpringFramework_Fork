@@ -155,6 +155,7 @@ public class DefaultLifecycleProcessor implements LifecycleProcessor, BeanFactor
 			List<Integer> keys = new ArrayList<>(phases.keySet());
 			Collections.sort(keys);
 			for (Integer key : keys) {
+				// 具体执行Lifecycle
 				phases.get(key).start();
 			}
 		}

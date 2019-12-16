@@ -1,6 +1,7 @@
+# ONE # 
 
-# 2019-11-25周 # 
 ## BeanDefinition是什么?为什么要有这个?这个对我们写代码有什么借鉴意义
+
 1. BeanDefinition的官方解释：BeanDefinition接口顶级基础接口,用来描述Bean,里面存放Bean元数据，比如Bean类名、scope、属性、构造函数参数列表、依赖的bean、是否是单例类、是否是懒加载等一些列信息。
 2. 也就是说我们通过xml，注解的方式会对bean进行配置，这些配置信息都保存在BeanDefinition中。一般在具体初始化中都会用到RootBeanDefinition，是BeanDefinition的子类
 
@@ -17,10 +18,11 @@
 
 
 
-# 2019-12-02周 #
+# TWO #
 
 ## 已知Spring可以解决单例模式，属性中循环依赖，Setter注入的循环依赖问题，但是为什么Spring只能解决这个特定的依赖问题，解决它所用到的原理大致介绍一下。
-主要依赖于@刘佳缘的文档进行加工。
+
+
 #### 1. 什么是循环依赖？
 
 循环依赖其实就是循环引用，也就是两个或者两个以上的**bean互相持有对方**，最终形成**闭环**。比如A依赖于B，B依赖于C，C又依赖于A。
@@ -28,15 +30,21 @@
 注意，这里**不是**函数的循环调用，是对象的**相互依赖关系**。循环调用其实就是一个死循环，除非有终结条件。
 
 Spring中循环依赖场景有： 
+
 ##### （1）构造器的循环依赖 ：
+
 - 构造器的循环依赖问题**无法解决**，只能拋出**BeanCurrentlyInCreationException**异常
+
 ##### （2）field属性的循环依赖
+
 - 在解决属性循环依赖时，spring采用的是**提前暴露对象**的方法。
 
 #### 2. 怎么检测是否存在循环依赖
+
 检测循环依赖相对比较容易，Bean在创建的时候可以给该Bean**打标**，如果递归调用回来发现**正在创建中**的话，即说明了循环依赖了。
 
 ## 3. Spring怎么解决循环依赖
+
 Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对象的引用时，对象的属性是可以延后设置的。（但是构造器必须是在获取引用之前）。
 
 ### 初始化步骤
@@ -60,9 +68,9 @@ Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对
    - > ```java
      > // 为了避免后期循环依赖，可以在bean初始化完成前将创建实例的ObjectFactory加入工厂
      > addSingletonFactory(beanName,
-     >       // 主要用于解决循环引用问题，对bean再一次依赖引用，主要应用SmartInstantiationAware BeanPostProcessor
-     >       // 其中我们熟知的AOP就是在这里将advice动态织入bean中，若没有则直接返回bean，不做任何处理。
-     >       () -> getEarlyBeanReference(beanName, mbd, bean)
+     >    // 主要用于解决循环引用问题，对bean再一次依赖引用，主要应用SmartInstantiationAware BeanPostProcessor
+     >    // 其中我们熟知的AOP就是在这里将advice动态织入bean中，若没有则直接返回bean，不做任何处理。
+     >    () -> getEarlyBeanReference(beanName, mbd, bean)
      > );	
      > ```
 
@@ -75,10 +83,12 @@ Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对
 3. 知道了这个原理时候，肯定就知道为啥Spring不能解决“A的构造方法中依赖了B的实例对象，同时B的构造方法中依赖了A的实例对象”这类问题了！因为加入singletonFactories三级缓存的前提是执行了构造器，所以构造器的循环依赖没法解决。
 
 #### 4. 基于构造器的循环依赖
+
 1. Spring容器会将每一个正在创建的Bean 标识符放在一个“**当前创建Bean池**”中，Bean标识符在创建过程中将一直保持在这个池中，因此如果在创建Bean过程中发现自己已经在“当前创建Bean池”里时将抛出BeanCurrentlyInCreationException异常表示循环依赖；而对于创建完毕的Bean将从“当前创建Bean池”中清除掉。
 2. Spring容器先创建单例A，A依赖B，然后将A放在“当前创建Bean池”中，此时创建B,B依赖C ,然后将B放在“当前创建Bean池”中,此时创建C，C又依赖A， 但是，此时A已经在池中，所以会报错，，因为在池中的Bean都是未初始化完的，所以会依赖错误 ，（初始化完的Bean会从池中移除）
 
 #### 5. 基于setter属性的循环依赖
+
 ![处理循环依赖](http://rtt-picture.oss-cn-hangzhou.aliyuncs.com/2019-12-13-010756.png)
 
 我们结合上面那张图看，Spring先是用构造实例化Bean对象 ，创建成功后，Spring会通过以下代码提前将对象暴露出来，此时的对象A还没有完成属性注入，属于早期对象，此时Spring会将这个实例化结束的对象放到一个Map中，并且Spring提供了获取这个未设置属性的实例化对象引用的方法。 结合我们的实例来看，当Spring实例化了A、B、C后，紧接着会去设置对象的属性，此时A依赖B，就会去Map中取出存在里面的单例B对象，以此类推，不会出来循环的问题。
@@ -97,6 +107,57 @@ Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对
 2. 也就是说我们可以通过改变xml进而修改某个接口的实现类，或者某一个方法，可以实现快速切换实现类。一定情况可以替代一下if  else。比如上某个功能，新功能新写一个类，使用xml来控制两者的使用。
 
 
+
+# THREE
+
+## 1、Spring起来后有几个spring容器？只有一个吗？
+
+1. 最为常见的场景是在一个项目中引入Spring和SpringMVC这两个框架，其本质就是两个容器：Spring是根容器，SpringMVC是其子容器。
+
+
+
+### 启动过程
+
+1. 对于一个web应用，其部署在web容器中，web容器提供其一个全局的上下文环境，这个上下文就是ServletContext。（用于存放在Tomcat容器中的对象）
+
+2. 在web.xml中会提供有contextLoaderListener。在web容器启动时，会触发容器初始化事件，这时候contextLoaderListener会监听到这个事件，其contextInitialized方法会被调用。在这个方法中，Spring会初始化一个启动上下文，这个上下文被称为根上下文，即WebApplicationContext。
+
+3. ContextLoaderListener监听器初始化完毕后，开始初始化web.xml中配置的Servlet，这个servlet可以配置多个，以最常见的DispatcherServlet为例，这个servlet实际上是一个标准的前端控制器，用以转发、匹配、处理每个servlet请求。
+
+4. **DispatcherServlet上下文在初始化的时候会建立自己的IoC上下文，用以持有spring mvc相关的bean。特别地，在建立DispatcherServlet自己的IoC上下文前，会利用WebApplicationContext.ROOTWEBAPPLICATIONCONTEXTATTRIBUTE先从ServletContext中获取之前的根上下文(即WebApplicationContext)作为自己上下文的parent上下文**。
+
+    
+
+
+
+### 作用范围
+
+1. **子容器(SpringMVC容器)可以访问父容器(Spring容器)的Bean，父容器(Spring容器)不能访问子容器(SpringMVC容器)的Bean**。也就是说，当在SpringMVC容器中getBean时，如果在自己的容器中找不到对应的bean，则会去父容器中去找，这也解释了为什么由SpringMVC容器创建的Controller可以获取到Spring容器创建的Service组件的原因。
+
+
+
+## 2、BeanDefinitionRegistryPostProcessor、BeanFactoryPostProcessor 触发是否有顺序，如果有顺序，那么是以怎么样的顺序进行触发的？
+
+1. 详见Spring容器的初始化:
+
+   > org.springframework.context.support.PostProcessorRegistrationDelegate#registerBeanPostProcessors(org.springframework.beans.factory.config.ConfigurableListableBeanFactory, org.springframework.context.support.AbstractApplicationContext)
+
+2. 总结下来就是：
+   - 先执行BeanDefinitionRegistryPostProcessor
+   - 后执行BeanFactoryPostProcesso
+3. 其中如果两者是有多个相同类型的，则更具优先级的顺序进行处理。
+
+
+
+
+
+
+
+
+
+
+
+# FOUR
 
 
 
