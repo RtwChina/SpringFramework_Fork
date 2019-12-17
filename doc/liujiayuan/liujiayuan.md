@@ -52,7 +52,7 @@ Spring的循环依赖的理论依据基于J**ava的引用传递**，当获得对
 （3）initializeBean：调用spring xml中的init 方法。
 
 从上面单例bean的初始化可以知道：**循环依赖主要发生在第一、二步**，也就是构造器循环依赖和field循环依赖。那么我们要解决循环引用也应该从初始化过程着手，对于单例来说，在Spring容器整个生命周期内，有且只有一个对象，所以很容易想到这个对象应该存在Cache中，Spring为了解决单例的循环依赖问题，使用了三级缓存。这三级缓存分别指： 
-* **singletonFactories** ： 单例对象工厂的cache 
+* **singletonFactories** ： ObjectFactory的cache
 * **earlySingletonObjects** ：提前暴光的单例对象的Cache 
 * **singletonObjects**：单例对象的cache
 
