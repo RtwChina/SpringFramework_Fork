@@ -9,9 +9,9 @@ BeanDefinition描述了一个bean实例，BeanDefinition中有很多Bean的信�
 
 ### 2.从容器角度,将了解到的概念,用一个简单直接的话或图描述
 1. 获取 BeanFactory
-    （1）先初始化 BeanFactory
-    （2）然后通过 XmlBeanDefinitionReader 将 xml 中的配置读取，放到 BeanDefinitionHolder 中
-    （3）BeanDefinitionHolder 创建 BeanDefinition，并注册到 BeanDefinitionRegistry 中（DefaultListableBeanFactory 实现了 BeanDefinitionRegistry，这里的 BeanDefinitionRegistry 指的就是 DefaultListableBeanFactory）。
+    - （1）先初始化 BeanFactory
+    - （2）然后通过 XmlBeanDefinitionReader 将 xml 中的配置读取，放到 BeanDefinitionHolder 中
+    - （3）BeanDefinitionHolder 创建 BeanDefinition，并注册到 BeanDefinitionRegistry 中（DefaultListableBeanFactory 实现了 BeanDefinitionRegistry，这里的 BeanDefinitionRegistry 指的就是 DefaultListableBeanFactory）。
 2. 往容器中注册 postProcessorBeanFactory。
 3. 根据顺序触发 BeanDefinitionRegistryPostProcessor 以及 BeanFactoryPostProcessor。
 4. 注册 BeanPostProcessor。
@@ -45,11 +45,11 @@ Spring的循环依赖的理论依据基于J**ava的引用传递**，当获得对
 
 **Spring的单例对象的初始化主要分为三步：**
 
-（1）createBeanInstance：实例化，其实也就是调用对象的构造方法实例化对象
+- （1）createBeanInstance：实例化，其实也就是调用对象的构造方法实例化对象
 
-（2）populateBean：填充属性，这一步主要是多bean的依赖属性进行填充
+- （2）populateBean：填充属性，这一步主要是多bean的依赖属性进行填充
 
-（3）initializeBean：调用spring xml中的init 方法。
+- （3）initializeBean：调用spring xml中的init 方法。
 
 从上面单例bean的初始化可以知道：**循环依赖主要发生在第一、二步**，也就是构造器循环依赖和field循环依赖。那么我们要解决循环引用也应该从初始化过程着手，对于单例来说，在Spring容器整个生命周期内，有且只有一个对象，所以很容易想到这个对象应该存在Cache中，Spring为了解决单例的循环依赖问题，使用了三级缓存。这三级缓存分别指： 
 * **singletonFactories** ： ObjectFactory的cache
@@ -157,3 +157,22 @@ PostProcessorRegistrationDelegate 中注册 BeanPostProcessor 的注册步骤和
 
 
 ### @Compont @Service 系列什么时候实例化
+是在解析xml中的自定义标签的时候，通过ContextNamespaceHandler初始化出来的ComponentScanBeanDefinitionParser进行扫描指定包，找出带@Compont、@Service标签的类，并将其实例化。
+
+# 2019-12-16周 #
+### 1:BeanFactory和ApplicationContext的区别
+* Spring提供了两种容器，一是BeanFactory，一个是ApplicationContext应用上下文。
+* BeanFactory是spring比较原始 的Factory，例如xmlBeanFactory是一种典型的BeanFactory。原始的BeanFactory无法支持spring的许多插件，比如AOP功能，Web应用等。
+* ApplicationContext接口，继承于BeanFactory，能够提供BeanFactory的所有功能，它是一种更加面向框架的工作方式，此外ApplicationContext还提供 了如下功能：MessageSource，提供国际化支持；资源访问，例如url和文件；事件传播；载入多个（有继承关系的上下文），使每个上下文都有一个特定的层次。比如Web。
+  - （1）**相同点**
+    - 都是通过xlm来加载factory容器。
+  - （2）**不同点**
+    - Bean何时加载？
+      * BeanFactory是采用延时加载来注入Bean的，即只有在使用某个Bean时，调用getBean方法，来对该Bean进行加载实例化。
+      * ApplicationContext则相反， 它是在容器启动时，一次创建所有的Bean，这样，在容器启动时，我们就可以发现Spring配置中存在的问题。
+    - **Applicationc 相比Beanfactory提供了更多的功能**
+      *   国际化支持
+      *   资源访问：Resource rs = ctx. getResource(“classpath:config.properties”), “file:c:/config.properties”
+      *   事件传递：通过实现ApplicationContextAware接口
+      
+### 2:ApplicationContext 上下文的生命周期
