@@ -668,7 +668,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
-		// 添加BeanProstProcessor
+		// 添加BeanProstProcessor，ApplicationContextAwareProcessor这是只有 Application中具有的
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
 		// 设置了几个忽略自动装配的接口

@@ -55,6 +55,7 @@ public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Se
 
 	@Override
 	public Advisor wrap(Object adviceObject) throws UnknownAdviceTypeException {
+		// 如果要封装的对象本身就是Advisor类型的，那么无须再做过多的处理
 		if (adviceObject instanceof Advisor) {
 			return (Advisor) adviceObject;
 		}
