@@ -404,9 +404,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	@Override
-	public Object initializeBean(Object existingBean, String beanName) {
-		return initializeBean(beanName, existingBean, null);
-	}
+	public Object initializeBean(Object existingBean, String beanName)
 
 	@Override
 	public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
@@ -1494,7 +1492,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		if (pvs != null) {
 			// 将属性应用到bean中
-			applyPropertyValues(beanName, mbd, bw, pvs);
+			applyPrope rtyValues(beanName, mbd, bw, pvs);
 		}
 	}
 

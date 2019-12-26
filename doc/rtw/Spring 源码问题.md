@@ -1,7 +1,6 @@
+
 # ONE # 
-
 ## BeanDefinition是什么?为什么要有这个?这个对我们写代码有什么借鉴意义
-
 1. BeanDefinition的官方解释：BeanDefinition接口顶级基础接口,用来描述Bean,里面存放Bean元数据，比如Bean类名、scope、属性、构造函数参数列表、依赖的bean、是否是单例类、是否是懒加载等一些列信息。
 2. 也就是说我们通过xml，注解的方式会对bean进行配置，这些配置信息都保存在BeanDefinition中。一般在具体初始化中都会用到RootBeanDefinition，是BeanDefinition的子类
 
@@ -24,27 +23,20 @@
 
 
 #### 1. 什么是循环依赖？
-
 循环依赖其实就是循环引用，也就是两个或者两个以上的**bean互相持有对方**，最终形成**闭环**。比如A依赖于B，B依赖于C，C又依赖于A。
 
 注意，这里**不是**函数的循环调用，是对象的**相互依赖关系**。循环调用其实就是一个死循环，除非有终结条件。
 
 Spring中循环依赖场景有： 
-
 ##### （1）构造器的循环依赖 ：
-
 - 构造器的循环依赖问题**无法解决**，只能拋出**BeanCurrentlyInCreationException**异常
-
 ##### （2）field属性的循环依赖
-
 - 在解决属性循环依赖时，spring采用的是**提前暴露对象**的方法。
 
 #### 2. 怎么检测是否存在循环依赖
-
 检测循环依赖相对比较容易，Bean在创建的时候可以给该Bean**打标**，如果递归调用回来发现**正在创建中**的话，即说明了循环依赖了。
 
 ## 3. Spring怎么解决循环依赖
-
 Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对象的引用时，对象的属性是可以延后设置的。（但是构造器必须是在获取引用之前）。
 
 ### 初始化步骤
@@ -68,9 +60,9 @@ Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对
    - > ```java
      > // 为了避免后期循环依赖，可以在bean初始化完成前将创建实例的ObjectFactory加入工厂
      > addSingletonFactory(beanName,
-     >    // 主要用于解决循环引用问题，对bean再一次依赖引用，主要应用SmartInstantiationAware BeanPostProcessor
-     >    // 其中我们熟知的AOP就是在这里将advice动态织入bean中，若没有则直接返回bean，不做任何处理。
-     >    () -> getEarlyBeanReference(beanName, mbd, bean)
+     >       // 主要用于解决循环引用问题，对bean再一次依赖引用，主要应用SmartInstantiationAware BeanPostProcessor
+     >       // 其中我们熟知的AOP就是在这里将advice动态织入bean中，若没有则直接返回bean，不做任何处理。
+     >       () -> getEarlyBeanReference(beanName, mbd, bean)
      > );	
      > ```
 
@@ -83,12 +75,10 @@ Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对
 3. 知道了这个原理时候，肯定就知道为啥Spring不能解决“A的构造方法中依赖了B的实例对象，同时B的构造方法中依赖了A的实例对象”这类问题了！因为加入singletonFactories三级缓存的前提是执行了构造器，所以构造器的循环依赖没法解决。
 
 #### 4. 基于构造器的循环依赖
-
 1. Spring容器会将每一个正在创建的Bean 标识符放在一个“**当前创建Bean池**”中，Bean标识符在创建过程中将一直保持在这个池中，因此如果在创建Bean过程中发现自己已经在“当前创建Bean池”里时将抛出BeanCurrentlyInCreationException异常表示循环依赖；而对于创建完毕的Bean将从“当前创建Bean池”中清除掉。
 2. Spring容器先创建单例A，A依赖B，然后将A放在“当前创建Bean池”中，此时创建B,B依赖C ,然后将B放在“当前创建Bean池”中,此时创建C，C又依赖A， 但是，此时A已经在池中，所以会报错，，因为在池中的Bean都是未初始化完的，所以会依赖错误 ，（初始化完的Bean会从池中移除）
 
 #### 5. 基于setter属性的循环依赖
-
 ![处理循环依赖](http://rtt-picture.oss-cn-hangzhou.aliyuncs.com/2019-12-13-010756.png)
 
 我们结合上面那张图看，Spring先是用构造实例化Bean对象 ，创建成功后，Spring会通过以下代码提前将对象暴露出来，此时的对象A还没有完成属性注入，属于早期对象，此时Spring会将这个实例化结束的对象放到一个Map中，并且Spring提供了获取这个未设置属性的实例化对象引用的方法。 结合我们的实例来看，当Spring实例化了A、B、C后，紧接着会去设置对象的属性，此时A依赖B，就会去Map中取出存在里面的单例B对象，以此类推，不会出来循环的问题。
@@ -126,7 +116,7 @@ Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对
 
 4. **DispatcherServlet上下文在初始化的时候会建立自己的IoC上下文，用以持有spring mvc相关的bean。特别地，在建立DispatcherServlet自己的IoC上下文前，会利用WebApplicationContext.ROOTWEBAPPLICATIONCONTEXTATTRIBUTE先从ServletContext中获取之前的根上下文(即WebApplicationContext)作为自己上下文的parent上下文**。
 
-    
+   
 
 
 
@@ -151,13 +141,231 @@ Spring的循环依赖的理论依据基于**Java的引用传递**，当获得对
 
 
 
-
-
-
-
-
-
 # FOUR
+
+## 1. BeanFactory和ApplicationContext的区别
+
+1. ApplicationContext包含BeanFactory的所有功能。一般建议直接使用ApplicationContext。
+2. 以下列举了ApplicationContext相较于BeanFactory多出来的部分
+   - 国际化处理
+   - 优先级加载BeanFactory
+   - 支持Spel的支持
+   - 事件监听器
+   - 容器各种事件的发布机制
+   - 支持生命周期的相关接口，如SmartLifecycle
+   - 如果配置的Bean是非懒加载，则会在启动的时候就把这些bean初始化，不像BeanFactory一样需要getBean后才初始化。
+
+
+
+
+
+## 2. ApplicationContext 上下文的生命周期
+
+https://www.cnblogs.com/kenshinobiy/p/4652008.html
+
+### BeanFactory 中的 Spring Bean的上下文生命周期
+
+1. 验证可能覆盖的方法(lookup-method, replaced-method)。
+   - prepareMethodOverrides方法。
+2. 处理继承InstantiationAwareBeanPostProcessor的bean，这是可以直接返回一个完整的bean的最后一个机会。
+   - resolveBeforeInstantiation方法。
+3. 填充属性populateBean，根据类型自动注入，根据名称自动注入。如果有依赖别的bean则会进行循环调用。
+   - populateBean 循环依赖调用其依赖的bean。
+4. 对特殊的bean处理：BeanNameAware，BeanFactoryAware
+   - invokeAwareMethods方法，如果发现bean实现了一些Aware接口，则将一些beanName, BeanFactory塞进去。
+5. 应用前置处理器postProcessBeforeInitialization
+   - applyBeanPostProcessorsBeforeInitialization
+6. 应用激活InitializingBean##afterPropertiesSet方法
+   - invokeInitMethods
+7. 应用激活用户自定义的init方法，Bean定义文件中定义init-method
+   - invokeInitMethods
+8. 应用后置处理器postProcessAfterInitialization
+   - applyBeanPostProcessorsAfterInitialization
+9. 可以使用啦！！！
+   - 尽情的享用Spring吧
+10. 调用  DisposableBean#destroy  方法
+11. 调用destroy - method 用户配置的销毁方法
+
+
+
+### ApplicationContext  中的 Spring Bean的上下文生命周期
+
+1. 因为ApplicationContext的最后会进行调用BeanFactory的getBean。只不过之前会给其加上一些ApplicationContext特有的BeanPostProcessor。
+   - **比如说会在prepareBeanFactory中加上ApplicationContextAwareProcessor。这就是在BeanFactory中所没有的。**可以让bean中含有ApplicationContext
+
+
+
+
+
+
+
+# Five
+
+##spring提供的BeanPostProcessor主要有哪些？各自的作用
+
+###  常用
+
+1. AbstractAutoProxyCreator 就是在postProcessAfterInitialization中将bean进行代理，实现其AOP功能。
+2. AutowiredAnnotationBeanPostProcessor就是应该识别@Autowired的关键实现
+
+
+
+### 作用
+
+1. 如果我们需要进行一些bean在初始化前或初始化后进行的操作都可以让bean继承BeanPostProcessor后重写具体的方法。
+   - Spring容器在初始化bean的时候会自动调用我们bean实现的BeanPostProcessor
+
+
+
+### 源码角度
+
+1. 在Spring容器初始化的时候会获取到所有实现BeanPostProcessor的bean,然后注册到beanFactory中去(registerBeanPostProcessors)
+2. 具体什么时候调用BeanPostProcessor的前后置处理器呢，是在BeanFactory.getBean中获取到的。
+
+
+
+
+
+
+
+##spring的监听器是怎么注册的？在何时注册的？
+
+1. Spring源码有一个EventListenerMethodProcessor类，继承自SmartInitializingSingleton，主要是用来初始化单例bean的，EventListenerMethodProcessor顾名思义就是将EventListener注释方法注册为单独的ApplicationEvent实例。
+
+2. EventListenerMethodProcessor##afterSingletonsInstantiated方法中会对每个bean都调用processBean。
+
+```java
+private void processBean(final String beanName, final Class<?> targetType) {
+		if (!this.nonAnnotatedClasses.contains(targetType) &&
+				AnnotationUtils.isCandidateClass(targetType, EventListener.class) &&
+				!isSpringContainerClass(targetType)) {
+
+			Map<Method, EventListener> annotatedMethods = null;
+			try {
+				// 获取对应bean上方法级别的注解
+				annotatedMethods = MethodIntrospector.selectMethods(targetType,
+						(MethodIntrospector.MetadataLookup<EventListener>) method ->
+								AnnotatedElementUtils.findMergedAnnotation(method, EventListener.class));
+			}
+			.......省略......
+			else {
+				// Non-empty set of methods
+				ConfigurableApplicationContext context = this.applicationContext;
+				Assert.state(context != null, "No ApplicationContext set");
+				// 取出两个factories，分别为TransactionEventListenerFactory 和 EventListenerMethodProcessor
+				// 应该对应两个@EventListner 和 @TransactionalEventListener
+				List<EventListenerFactory> factories = this.eventListenerFactories;
+				Assert.state(factories != null, "EventListenerFactory List not initialized");
+				for (Method method : annotatedMethods.keySet()) {
+					for (EventListenerFactory factory : factories) {
+						if (factory.supportsMethod(method)) {
+							Method methodToUse = AopUtils.selectInvocableMethod(method, context.getType(beanName));
+							ApplicationListener<?> applicationListener =
+									factory.createApplicationListener(beanName, targetType, methodToUse);
+							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
+								((ApplicationListenerMethodAdapter) applicationListener).init(context, this.evaluator);
+							}
+							// 封装成applicationListener后添加到容器的ApplicationListener中
+							context.addApplicationListener(applicationListener);
+							break;
+						}
+					}
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug(annotatedMethods.size() + " @EventListener methods processed on bean '" +
+							beanName + "': " + annotatedMethods);
+				}
+			}
+		}
+	}
+```
+
+- 也就是说如果发现方法上有@EventListner 和 @TransactionalEventListener 会将其使用context.addApplicationListener()添加到监听器容器中去。
+
+
+
+
+
+
+
+
+
+##spring事件监听的实现原理
+
+1. Dubbo的服务提供方也是利用了该原理进行实现.....具体需要在进行深入了解
+
+### 发送事件触发流程
+
+1. org.springframework.context.support.AbstractApplicationContext#publishEvent(java.lang.Object, org.springframework.core.ResolvableType)
+2. org.springframework.context.event.SimpleApplicationEventMulticaster#multicastEvent(org.springframework.context.ApplicationEvent, org.springframework.core.ResolvableType)
+
+```java
+public void multicastEvent(final ApplicationEvent event, ResolvableType eventType) {
+		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+		for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+      // 需
+			Executor executor = getTaskExecutor();
+			if (executor != null) {
+				executor.execute(new Runnable() {
+					@Override
+					public void run() {
+						invokeListener(listener, event);
+					}
+				});
+			}
+			else {
+				invokeListener(listener, event);
+			}
+		}
+	}
+```
+
+- invokeListener中调用listener.onApplicationEvent，时会判断当前listener是否可以接受对应的event，然后才会具体调用相对应的代理proxy类。
+
+3. 那么又引出一个问题@Async("asyncEventTaskExecutor")这个功能是在哪里实现的呢。大致判断是在生成具体的bean的proxy时，添加了AsyncExecutionInterceptor拦截器。
+   - 熟悉AOP的都知道，看一下AsyncExecutionInterceptor的invoker方法就是我们的callback
+
+```java
+public Object invoke(final MethodInvocation invocation) throws Throwable {
+   Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
+   Method specificMethod = ClassUtils.getMostSpecificMethod(invocation.getMethod(), targetClass);
+   final Method userDeclaredMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
+
+   // 我们使用@Async("asyncEventTaskExecutor")使用的线程池
+   AsyncTaskExecutor executor = determineAsyncExecutor(userDeclaredMethod);
+   if (executor == null) {
+      throw new IllegalStateException(
+            "No executor specified and no default executor set on AsyncExecutionInterceptor either");
+   }
+
+   // 生成一个callable方法，放到线程池中运行
+   Callable<Object> task = () -> {
+      try {
+         Object result = invocation.proceed();
+         if (result instanceof Future) {
+            return ((Future<?>) result).get();
+         }
+      }
+      catch (ExecutionException ex) {
+         handleError(ex.getCause(), userDeclaredMethod, invocation.getArguments());
+      }
+      catch (Throwable ex) {
+         handleError(ex, userDeclaredMethod, invocation.getArguments());
+      }
+      return null;
+   };
+
+   return doSubmit(task, executor, invocation.getMethod().getReturnType());
+}
+```
+
+4. 如果我们不发送event来触发eventListner的话，直接通过调用eventListner的方法。
+   - 如果在对应方法上添加了@Async("asyncEventTaskExecutor")，那么任然会异步运行。
+
+
+
+
+
 
 
 
