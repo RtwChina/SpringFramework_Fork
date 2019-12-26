@@ -274,8 +274,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	 * <p>By default, only the BeanFactoryAware interface is ignored.
 	 * For further types to ignore, invoke this method for each type.
 	 * @see org.springframework.beans.factory.BeanFactoryAware
-	 * @see org.springframework.context.ApplicationContextAware
-	 */
+//	 * @see org.springframework.context.ApplicationContextAware
+//	 */
 	public void ignoreDependencyInterface(Class<?> ifc) {
 		this.ignoredDependencyInterfaces.add(ifc);
 	}
@@ -404,7 +404,9 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	}
 
 	@Override
-	public Object initializeBean(Object existingBean, String beanName)
+	public Object initializeBean(Object existingBean, String beanName) {
+		return initializeBean(beanName, existingBean, null);
+	}
 
 	@Override
 	public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
@@ -1492,7 +1494,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		if (pvs != null) {
 			// 将属性应用到bean中
-			applyPrope rtyValues(beanName, mbd, bw, pvs);
+			applyPropertyValues(beanName, mbd, bw, pvs);
 		}
 	}
 
