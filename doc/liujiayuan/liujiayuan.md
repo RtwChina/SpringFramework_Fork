@@ -159,6 +159,7 @@ PostProcessorRegistrationDelegate 中注册 BeanPostProcessor 的注册步骤和
 ### @Compont @Service 系列什么时候实例化
 是在解析xml中的自定义标签的时候，通过ContextNamespaceHandler初始化出来的ComponentScanBeanDefinitionParser进行扫描指定包，找出带@Compont、@Service标签的类，并将其实例化。
 
+
 # 2019-12-16周 #
 ### 1:BeanFactory和ApplicationContext的区别
 * Spring提供了两种容器，一是BeanFactory，一个是ApplicationContext应用上下文。
@@ -174,5 +175,205 @@ PostProcessorRegistrationDelegate 中注册 BeanPostProcessor 的注册步骤和
       *   国际化支持
       *   资源访问：Resource rs = ctx. getResource(“classpath:config.properties”), “file:c:/config.properties”
       *   事件传递：通过实现ApplicationContextAware接口
-      
 ### 2:ApplicationContext 上下文的生命周期
+#### 启动流程
+1. 获取 beanFactory
+   1. 创建beanFactory
+   2. 加载所有BeanDefinitions
+2. **给 AbstractApplicationContext 子类一个可以修改 beanFactory 的入口**
+3. 注册以及实例化所有BeanFactoryPostProcessor实现类，触发 **BeanDefinitionRegistryPostProcessor.postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry)** 以及 **BeanFactoryPostProcessor.postProcessBeanFactory(beanFactory)**
+4. 注册以及实例化所有BeanPostProcessor实现类
+5. 初始化 **Message 源**
+6. 初始化消息广播器 **applicationEventMulticaster**
+7. **给 AbstractApplicationContext 子类一个可以初始化其他 bean 的入口**
+8. 将所有 Listener bean,注册到消息广播器中
+9. 初始化剩余非懒加载实例（非惰性实例）
+   1. 执行InstantiationAwareBeanPostProcessor的postProcessBeforeInstantiation方法
+   2. 反射构建bean（使用构造方法构建或者使用FactoryMethod进行构建）
+   3. 执行MergedBeanDefinitionPostProcessor的postProcessMergedBeanDefinition方法（autowired注解就是通过此方法实现各种类型的预解析的，这里给了一个机会修改BeanDefinition的部分属性，但某些属性已经填充入bean中了。）
+   4. bean注入属性：
+      1. （1）执行InstantiationAwareBeanPostProcessor的postProcessAfterInstantiation方法
+      2. （2）执行InstantiationAwareBeanPostProcessor的postProcessProperties方法（autowired注解在这注入Bean中）
+      3. （3）将属性应用到bean中
+   5. 初始化bean
+      1. （1）调用 Aware 系列指定方法
+         1. a. BeanNameAware.setBeanName(beanName)
+         2. b.BeanClassLoaderAware.setBeanClassLoader(bcl)
+         3. c.BeanFactoryAware.setBeanFactory(BeanFactory beanFactory)
+      2. （2）执行BeanPostProcessor的postProcessBeforeInitialization方法
+      3. （3）如果是(InitializingBean)的 bean执行afterPropertiesSet()
+      4. （4）执行init-method
+      5. （5）执行BeanPostProcessor的postProcessAfterInitialization方法 
+10. 结束 refresh 阶段
+    1.  清空上下文级别资源缓存
+    2.  初始化生命周期处理器（lifecycleProcessor）
+    3.  触发所有实现了Lifecycle接口的bean（start 方法会不会真正触发还要看其他配置）
+    4.  发布 **ContextRefreshedEvent** 事件
+    
+#### 销毁容器流畅
+1. 调用DisposableBean的destroy进行销毁
+2. 调用<bean>中destroy-method属性指定的回调方法
+
+
+
+# 2019-12-23周 #
+
+### 1.spring提供的BeanPostProcessor主要有哪些？各自的作用
+下面介绍顺序根据 getBean 操作调用顺序进行
+* **InstantiationAwareBeanPostProcessor** 
+  * 1. Object **postProcessBeforeInstantiation**(Class<?> beanClass, String beanName)
+    * 作用阶段：实例化之前运行
+    * 功能：返回 Bean 对象可以代替需要创建的 Bean 使用，短路作用
+    * 注意点：如果需要进行短路，BeanPostProcessors的postProcessAfterInitialization可以配合使用。
+  
+* **MergedBeanDefinitionPostProcessor**
+  * 2. void **postProcessMergedBeanDefinition**(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName);
+    * 作用阶段：postProcessAfterInstantiation 之前
+    * 功能：修改 RootBeanDefinition
+  
+* **InstantiationAwareBeanPostProcessor** 
+  * 3. boolean **postProcessAfterInstantiation**(Object bean, String beanName)
+    * 作用阶段：实例化之后运行
+    * 功能：该阶段 spring 自动装配还未开始，返回false 可以提前结束自动注入（不进行自动注入）
+  * 4. PropertyValues **postProcessProperties**(PropertyValues pvs, Object bean, String beanName 
+    * 作用阶段：postProcessAfterInstantiation 之后， postProcessBeforeInitialization之前
+    * 功能：提供修改pvs，当然也可以修改Bean
+  
+* **BeanPostProcessor**
+  * 5. Object postProcessBeforeInitialization(Object bean, String beanName)
+    * 作用阶段：在初始化之前运行
+    * 功能：修改 Bean
+  * 6. Object **postProcessAfterInitialization**(Object bean, String beanName): 
+    * 作用阶段：在初始化之后运行
+    * 功能：修改 Bean
+  
+* **SmartInstantiationAwareBeanPostProcessor**
+  * 7. Object postProcessBeforeInitialization(Object bean, String beanName)
+    * 作用阶段：**存在循环依赖时**，初始化之前
+    * 功能：修改 Bean
+
+
+
+### 2.spring的监听器是怎么注册的？在何时注册的？
+    org.springframework.context.support.AbstractApplicationContext#refresh
+    public void refresh() throws BeansException, IllegalStateException {
+        synchronized (this.startupShutdownMonitor) {
+            ...
+            try {
+                ...
+                // Check for listener beans and register them.
+                // 在所有注册的bean中查找Listener bean,注册到消息广播器中
+                registerListeners();
+    
+                // Instantiate all remaining (non-lazy-init) singletons.
+                // 初始化剩下的单实例（非惰性），通过getBean的方式
+                finishBeanFactoryInitialization(beanFactory);
+    
+                // Last step: publish corresponding event.
+                // 完成刷新过程，通知声明周期处理器LifecycleProcessor刷新过程，同时发出ContextRefreshedEvent通知别人
+                finishRefresh();
+            }
+            ...
+        }
+    }
+
+
+将容器中已经有的 ApplicationListener 加入到 applicationEventMulticaster.defaultRetriever.**applicationListeners** 缓存中。
+
+以及未实例的所有 **ApplicationListener 类型**的 bean 加入到 applicationEventMulticaster.defaultRetriever.**applicationListenerBeans** 缓存中，注意:
+* 这里没有实例化，**只存了 beanName**。实例发生在 ListenerRetriever.getApplicationListeners 中。
+* 这里只是保存了**实现了ApplicationListener类型的Listener**，**@EventListener 并不是在这里获取的**
+  
+
+    protected void registerListeners() {
+        // Register statically specified listeners first.
+        for (ApplicationListener<?> listener : getApplicationListeners()) {
+            getApplicationEventMulticaster().addApplicationListener(listener);
+        }
+    
+        // Do not initialize FactoryBeans here: We need to leave all regular beans
+        // uninitialized to let post-processors apply to them!
+        String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
+        for (String listenerBeanName : listenerBeanNames) {
+            getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
+        }
+    
+        // Publish early application events now that we finally have a multicaster...
+        Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
+        this.earlyApplicationEvents = null;
+        if (earlyEventsToProcess != null) {
+            for (ApplicationEvent earlyEvent : earlyEventsToProcess) {
+                getApplicationEventMulticaster().multicastEvent(earlyEvent);
+            }
+        }
+    }
+    
+
+@EventListener 详见处理类 **EventListenerMethodProcessor#afterSingletonsInstantiated**，在 finishBeanFactoryInitialization 中触发注册的,
+所以想要让 @EventListener 起作用就一定要在类上加上注解或者其他方法，让识别到该类（常见的是加 **@Compont**）。
+
+EventListenerMethodProcessor 是 SmartInitializingSingleton 的实现，走到这里就会进行 afterSingletonsInstantiated 操作。
+
+**afterSingletonsInstantiated** 中会进行方法上的筛选（判断方法上是否带有 **@EventListener** 注解），然后根据这个方法动态生成 **ApplicationListenerMethodAdapter** 存入缓存中。
+
+    org.springframework.beans.factory.support.DefaultListableBeanFactory
+    public void preInstantiateSingletons() throws BeansException {
+        ...
+        // Trigger post-initialization callback for all applicable beans...
+        for (String beanName : beanNames) {
+            Object singletonInstance = getSingleton(beanName);
+            if (singletonInstance instanceof SmartInitializingSingleton) {
+                final SmartInitializingSingleton smartSingleton = (SmartInitializingSingleton) singletonInstance;
+                if (System.getSecurityManager() != null) {
+                    AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+                        smartSingleton.afterSingletonsInstantiated();
+                        return null;
+                    }, getAccessControlContext());
+                }
+                else {
+                    smartSingleton.afterSingletonsInstantiated();
+                }
+            }
+        }
+    }
+
+
+### 3.spring事件监听的实现原理
+
+用 applicationContext.publishEvent(T event) 方法注册 event，底层还是会调用这个方法。
+
+    org.springframework.context.event.SimpleApplicationEventMulticaster
+    
+    public void multicastEvent(final ApplicationEvent event, @Nullable ResolvableType eventType) {
+        ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+        Executor executor = getTaskExecutor();
+        for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+            if (executor != null) {
+                executor.execute(() -> invokeListener(listener, event));
+            }
+            else {
+                invokeListener(listener, event);
+            }
+        }
+    }
+**getApplicationListeners(event, type)**： 已经帮我们根据 eventType 找出需要监听的 listener。
+
+**invokeListener(listener, event);** 
+* 普通实现了 ApplicationContextLinstener 的类，则直接调用 onApplicationEvent(E event)
+* 使用 @EventListener 的类，则是调用 onApplicationEvent(ApplicationEvent event) 方法，
+    org.springframework.context.event.ApplicationListenerMethodAdapter
+  	public void onApplicationEvent(ApplicationEvent event) {
+		processEvent(event);
+	}
+  	public void processEvent(ApplicationEvent event) {
+		Object[] args = resolveArguments(event);
+		if (shouldHandle(event, args)) {
+			Object result = doInvoke(args);
+			if (result != null) {
+				handleResult(result);
+			}
+			else {
+				logger.trace("No result object given - no result to handle");
+			}
+		}
+	}
