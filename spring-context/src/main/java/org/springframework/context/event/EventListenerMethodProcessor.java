@@ -149,6 +149,7 @@ public class EventListenerMethodProcessor
 
 			Map<Method, EventListener> annotatedMethods = null;
 			try {
+				// 获取对应bean上方法级别的注解
 				annotatedMethods = MethodIntrospector.selectMethods(targetType,
 						(MethodIntrospector.MetadataLookup<EventListener>) method ->
 								AnnotatedElementUtils.findMergedAnnotation(method, EventListener.class));
@@ -170,6 +171,8 @@ public class EventListenerMethodProcessor
 				// Non-empty set of methods
 				ConfigurableApplicationContext context = this.applicationContext;
 				Assert.state(context != null, "No ApplicationContext set");
+				// 取出两个factories，分别为TransactionEventListenerFactory 和 EventListenerMethodProcessor
+				// 应该对应两个@EventListner 和 @TransactionalEventListener
 				List<EventListenerFactory> factories = this.eventListenerFactories;
 				Assert.state(factories != null, "EventListenerFactory List not initialized");
 				for (Method method : annotatedMethods.keySet()) {
@@ -181,6 +184,7 @@ public class EventListenerMethodProcessor
 							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
 								((ApplicationListenerMethodAdapter) applicationListener).init(context, this.evaluator);
 							}
+							// 封装成applicationListener后添加到容器的ApplicationListener中
 							context.addApplicationListener(applicationListener);
 							break;
 						}

@@ -437,6 +437,7 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 				ResultSet rs = null;
 				try {
 					rs = stmt.executeQuery(sql);
+					// 使用我们设置的RowMapper转化获取到数据
 					return rse.extractData(rs);
 				}
 				finally {
@@ -596,7 +597,8 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 	//-------------------------------------------------------------------------
 	// Methods dealing with prepared statements
 	//-------------------------------------------------------------------------
-
+	// execute 作为数据库操作的核心人 口， 将大多数数据库操作相同的步骤统一封装 ，
+	// 而将个性化的操作使用参数 PreparedStatementCallback 进行回调。
 	@Override
 	@Nullable
 	public <T> T execute(PreparedStatementCreator psc, PreparedStatementCallback<T> action)
@@ -609,11 +611,14 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 			logger.debug("Executing prepared SQL statement" + (sql != null ? " [" + sql + "]" : ""));
 		}
 
+		// 获取数据库数据
 		Connection con = DataSourceUtils.getConnection(obtainDataSource());
 		PreparedStatement ps = null;
 		try {
 			ps = psc.createPreparedStatement(con);
+			// 应用用户设定的输入参数
 			applyStatementSettings(ps);
+			// 调用回调函数,具体的lambda表达式由各个不同的update,select等配置。实现的还是比较巧妙的。
 			T result = action.doInPreparedStatement(ps);
 			handleWarnings(ps);
 			return result;
@@ -862,6 +867,7 @@ public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
 		return updateCount(execute(psc, ps -> {
 			try {
 				if (pss != null) {
+					// 设置PreparedStateMent所需的全部参数，会把具体ps(用户的入参)转化成JDBC规定入参
 					pss.setValues(ps);
 				}
 				int rows = ps.executeUpdate();

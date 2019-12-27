@@ -553,7 +553,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 				onRefresh();
 
 				// Check for listener beans and register them.
-				// 在所有注册的bean中查找Listener bean,注册到消息广播器中
+				// 在所有注册的bean中查找Listener bean,注册到消息广播器中， 就是一些EventListner
 				registerListeners();
 
 				// Instantiate all remaining (non-lazy-init) singletons.
@@ -668,7 +668,7 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
 		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
 
 		// Configure the bean factory with context callbacks.
-		// 添加BeanProstProcessor
+		// 添加BeanProstProcessor，ApplicationContextAwareProcessor这是只有 Application中具有的
 		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
 
 		// 设置了几个忽略自动装配的接口
