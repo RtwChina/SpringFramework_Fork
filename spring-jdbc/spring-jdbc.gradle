@@ -16,4 +16,6 @@ dependencies {
 	optional("org.jetbrains.kotlin:kotlin-stdlib")
 	compile("commons-dbcp:commons-dbcp:1.4")
 	compile("mysql:mysql-connector-java:8.0.18")
+	compile("org.mybatis:mybatis:3.5.3")
+	compile("org.mybatis:mybatis-spring:2.0.3")
 }

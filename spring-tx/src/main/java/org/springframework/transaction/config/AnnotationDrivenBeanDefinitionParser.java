@@ -62,6 +62,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
 		registerTransactionalEventListenerFactory(parserContext);
 		String mode = element.getAttribute("mode");
+		// 查看是否具有aspecj配置
 		if ("aspectj".equals(mode)) {
 			// mode="aspectj"
 			registerTransactionAspect(element, parserContext);

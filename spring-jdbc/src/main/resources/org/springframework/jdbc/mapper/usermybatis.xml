@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.springframework.jdbc.rtwtest.mybatis.mapper.MyBatisUserMapper">
+	<select id="getUser" parameterType="java.lang.Integer" resultType="org.springframework.jdbc.rtwtest.mybatis.MyBatisUser">
+        select * from myBatisUser where id = #{id}
+    </select>
+	<insert id="insertUser" parameterType="org.springframework.jdbc.rtwtest.mybatis.MyBatisUser">
+        insert into myBatisUser(name,age) values (#{name},#{age})
+    </insert>
+</mapper>
