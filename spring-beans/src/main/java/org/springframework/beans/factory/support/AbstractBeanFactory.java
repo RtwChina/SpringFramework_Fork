@@ -362,7 +362,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 
 				else {
-					// isSingle
+					// spring 2.0 后添加的 session、request、global session 三种scope
 					String scopeName = mbd.getScope();
 					final Scope scope = this.scopes.get(scopeName);
 					if (scope == null) {
