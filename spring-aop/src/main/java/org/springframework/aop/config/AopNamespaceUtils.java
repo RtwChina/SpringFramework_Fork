@@ -56,9 +56,13 @@ public abstract class AopNamespaceUtils {
 	public static void registerAutoProxyCreatorIfNecessary(
 			ParserContext parserContext, Element sourceElement) {
 
+		// 在BeanDefinition中获取判断是否已存在 internalAutoProxyCreator，InfrastructureAdvisorAutoProxyCreator。
+		// 不存在则创建一个
 		BeanDefinition beanDefinition = AopConfigUtils.registerAutoProxyCreatorIfNecessary(
 				parserContext.getRegistry(), parserContext.extractSource(sourceElement));
+		// 使用CGLIB来代理
 		useClassProxyingIfNecessary(parserContext.getRegistry(), sourceElement);
+		// 注册internalAutoProxyCreator
 		registerComponentIfNecessary(beanDefinition, parserContext);
 	}
 
