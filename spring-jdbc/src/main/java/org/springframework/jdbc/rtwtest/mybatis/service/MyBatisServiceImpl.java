@@ -20,6 +20,7 @@ public class MyBatisServiceImpl implements MyBatisService {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
+//	@Transactional
 	public void insertAMybatisBean(String name, int age, String sex) {
 		MyBatisUser myBatisUser = new MyBatisUser();
 		myBatisUser.setAge(22);

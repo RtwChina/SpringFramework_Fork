@@ -104,6 +104,8 @@ public abstract class TransactionSynchronizationUtils {
 	public static void triggerBeforeCompletion() {
 		for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
 			try {
+				// 对于一般的配置，会执行SqlSessionUtils中的BeforeCompletion
+				// org.mybatis.spring.SqlSessionUtils.SqlSessionSynchronization.beforeCompletion
 				synchronization.beforeCompletion();
 			}
 			catch (Throwable tsex) {
