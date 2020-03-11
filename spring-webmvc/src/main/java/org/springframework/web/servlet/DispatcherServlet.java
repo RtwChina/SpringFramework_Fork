@@ -492,6 +492,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {
+		// 初始化策略
 		initStrategies(context);
 	}
 
@@ -500,14 +501,23 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		// 1. 初始化MultipartResolver
 		initMultipartResolver(context);
+		// 2. 初始化LocaleResolver
 		initLocaleResolver(context);
+		// 3. 初始化ThemeResolver
 		initThemeResolver(context);
+		// 4. 初始化HandlerMappings
 		initHandlerMappings(context);
+		// 5. 初始化HandlerAdapters
 		initHandlerAdapters(context);
+		// 6. 初始化HandlerExceptionResolvers
 		initHandlerExceptionResolvers(context);
+		// 7. 初始化RequestToViewNameTranslator
 		initRequestToViewNameTranslator(context);
+		// 8. 初始化ViewResolvers
 		initViewResolvers(context);
+		// 9. 初始化FlashMapManager
 		initFlashMapManager(context);
 	}
 
@@ -653,7 +663,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		// Ensure we have at least some HandlerAdapters, by registering
-		// default HandlerAdapters if no other adapters are found.
+		// default HandlerAdapters if no other adapters are found. 查找到默认的适配器
 		if (this.handlerAdapters == null) {
 			this.handlerAdapters = getDefaultStrategies(context, HandlerAdapter.class);
 			if (logger.isTraceEnabled()) {
@@ -859,6 +869,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	@SuppressWarnings("unchecked")
 	protected <T> List<T> getDefaultStrategies(ApplicationContext context, Class<T> strategyInterface) {
 		String key = strategyInterface.getName();
+		// 会从DispatcherServlet.properties配置文件中获取
 		String value = defaultStrategies.getProperty(key);
 		if (value != null) {
 			String[] classNames = StringUtils.commaDelimitedListToStringArray(value);
@@ -940,6 +951,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		try {
+			//根据不同的request分发到不同的Handler中进行处理
 			doDispatch(request, response);
 		}
 		finally {
@@ -1009,17 +1021,21 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// 如果是 MultipartContent 类型的 request 则转换 request 为 MultipartHttpServletRequest 类型的request
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// 根据request信息寻找对应的Handler
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
+					// 没找到，则通过response返回错误
 					noHandlerFound(processedRequest, response);
 					return;
 				}
 
 				// Determine handler adapter for the current request.
+				// 根据当前的handler寻找对应的HandlerAdapter
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -1032,11 +1048,13 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
+				// 拦截器的preHandler方法的调用
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// Actually invoke the handler.
+				// 真正的激活handler并返回视图
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1044,6 +1062,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+				// 拦截器的postHandler方法的调用
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1054,6 +1073,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			// 记过处理，已经 拦截器的HandlerException方法的调用
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
@@ -1108,6 +1128,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 			else {
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
+				// 处理系统逻辑处理出现异常的情况
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);
 			}
@@ -1115,6 +1136,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Did the handler return a view to render?
 		if (mv != null && !mv.wasCleared()) {
+			// 根据视图跳转页面
 			render(mv, request, response);
 			if (errorView) {
 				WebUtils.clearErrorRequestAttributes(request);
@@ -1267,6 +1289,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	protected HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
 		if (this.handlerAdapters != null) {
 			for (HandlerAdapter adapter : this.handlerAdapters) {
+				// 遍历所有的适用的adapter，查看当前的adapter是否和handler符合
 				if (adapter.supports(handler)) {
 					return adapter;
 				}

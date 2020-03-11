@@ -120,8 +120,10 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	@Override
 	@Nullable
 	protected Object getHandlerInternal(HttpServletRequest request) throws Exception {
+		// 截取用于匹配的URL有效路径
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
 		request.setAttribute(LOOKUP_PATH, lookupPath);
+		// 根据路径寻找Handler
 		Object handler = lookupHandler(lookupPath, request);
 		if (handler == null) {
 			// We need to care for the default handler directly, since we need to
@@ -170,6 +172,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 				handler = obtainApplicationContext().getBean(handlerName);
 			}
 			validateHandler(handler, request);
+			// 加入了拦截器到handler链中
 			return buildPathExposingHandler(handler, urlPath, urlPath, null);
 		}
 

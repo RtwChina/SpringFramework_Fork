@@ -169,11 +169,12 @@ public abstract class AbstractController extends WebContentGenerator implements 
 			if (session != null) {
 				Object mutex = WebUtils.getSessionMutex(session);
 				synchronized (mutex) {
+					// 这步才是最终调用用户实现的 业务方法
 					return handleRequestInternal(request, response);
 				}
 			}
 		}
-
+		// 这步才是最终调用用户实现的 业务方法
 		return handleRequestInternal(request, response);
 	}
 

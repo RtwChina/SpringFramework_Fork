@@ -563,6 +563,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		WebApplicationContext wac = null;
 
 		if (this.webApplicationContext != null) {
+			// context实例在构造函数中被注入
 			// A context instance was injected at construction time -> use it
 			wac = this.webApplicationContext;
 			if (wac instanceof ConfigurableWebApplicationContext) {
@@ -575,11 +576,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 						// the root application context (if any; may be null) as the parent
 						cwac.setParent(rootContext);
 					}
+					// 刷新上下文环境，其中会调用主要是调用父类的refresh，就是大名鼎鼎的容器初始化refresh
 					configureAndRefreshWebApplicationContext(cwac);
 				}
 			}
 		}
 		if (wac == null) {
+			// 根据contextAttribute属性加载WebApplicationContext
 			// No context instance was injected at construction time -> see if one
 			// has been registered in the servlet context. If one exists, it is assumed
 			// that the parent context (if any) has already been set and that the
@@ -988,21 +991,25 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
+		// 记录当前时间，用于计算Web请求的处理时间
 		long startTime = System.currentTimeMillis();
 		Throwable failureCause = null;
 
+		// 1. 为了保证当前线程的 LocaleContext 以及 RequestAttributes 可 以在当前请求后还能恢 复 ，提取当前线程的两个属性。
 		LocaleContext previousLocaleContext = LocaleContextHolder.getLocaleContext();
 		LocaleContext localeContext = buildLocaleContext(request);
 
 		RequestAttributes previousAttributes = RequestContextHolder.getRequestAttributes();
 		ServletRequestAttributes requestAttributes = buildRequestAttributes(request, response, previousAttributes);
 
+		// 2. 根据当前 request 创建对应的 LocaleContext 和 RequestAttributes ，并绑定到当前线程。
 		WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
 		asyncManager.registerCallableInterceptor(FrameworkServlet.class.getName(), new RequestBindingInterceptor());
 
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			// 3. 委托给 doService 方法进一步处理。 核心方法
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {
@@ -1015,11 +1022,13 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		}
 
 		finally {
+			//4. 请求处理结束后恢复线程到原始状态 。
 			resetContextHolders(request, previousLocaleContext, previousAttributes);
 			if (requestAttributes != null) {
 				requestAttributes.requestCompleted();
 			}
 			logResult(request, response, failureCause, asyncManager);
+			//5. 请求处理结束后无论成功与否发布事件通知 。
 			publishRequestHandledEvent(request, response, startTime, failureCause);
 		}
 	}
