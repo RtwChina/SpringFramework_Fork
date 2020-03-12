@@ -37,6 +37,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * when Spring's transaction management is enabled. For other cases, registering
  * a bean of type {@link TransactionalEventListenerFactory} is required.
  *
+ * 负责@TransactionalEventListener的拦截处理
+ *
  * @author Stephane Nicoll
  * @author Juergen Hoeller
  * @since 4.2
