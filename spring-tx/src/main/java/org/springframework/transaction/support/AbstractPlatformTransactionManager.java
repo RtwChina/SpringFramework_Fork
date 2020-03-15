@@ -999,7 +999,9 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 	 */
 	private void triggerAfterCompletion(DefaultTransactionStatus status, int completionStatus) {
 		if (status.isNewSynchronization()) {
+			// 1. 获取 TransactionSynchronizationManager 注册过的所有 callback
 			List<TransactionSynchronization> synchronizations = TransactionSynchronizationManager.getSynchronizations();
+			// 2. 清理事务状态: 此时事务已经结束了, 需要清理状态, 否则 callback 执行时会判断到当前线程还在事务中
 			TransactionSynchronizationManager.clearSynchronization();
 			if (!status.hasTransaction() || status.isNewTransaction()) {
 				if (status.isDebug()) {
@@ -1007,6 +1009,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 				}
 				// No transaction or new transaction for the current scope ->
 				// invoke the afterCompletion callbacks immediately
+				//3. 触发所有 callbck
 				invokeAfterCompletion(synchronizations, completionStatus);
 			}
 			else if (!synchronizations.isEmpty()) {

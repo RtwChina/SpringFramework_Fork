@@ -62,6 +62,8 @@ class ApplicationListenerMethodTransactionalAdapter extends ApplicationListenerM
 
 	@Override
 	public void onApplicationEvent(ApplicationEvent event) {
+		// 判断当前线程中是否存在事务，isSynchronizationActive会漏掉`Propagation.NOT_SUPPORTED` and `Propagation.SUPPORTS`两者，这两者虽然没有事务但是仍然是true,
+		// 而isActualTransactionActive可以具体的校验出事务有效性
 		if (TransactionSynchronizationManager.isSynchronizationActive()
 				&& TransactionSynchronizationManager.isActualTransactionActive()) {
 			TransactionSynchronization transactionSynchronization = createTransactionSynchronization(event);
